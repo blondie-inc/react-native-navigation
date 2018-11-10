@@ -24,7 +24,7 @@
 
 - (instancetype)initWithLayoutInfo:(RNNLayoutInfo *)layoutInfo rootViewCreator:(id<RNNRootViewCreator>)creator eventEmitter:(RNNEventEmitter *)eventEmitter presenter:(RNNViewControllerPresenter *)presenter options:(RNNNavigationOptions *)options defaultOptions:(RNNNavigationOptions *)defaultOptions {
 	self = [super init];
-	
+
 	self.layoutInfo = layoutInfo;
 	self.creator = creator;
 	if (self.creator) {
@@ -34,23 +34,23 @@
 													 name: @"RCTContentDidAppearNotification"
 												   object:nil];
 	}
-	
+
 	self.eventEmitter = eventEmitter;
 	self.presenter = presenter;
 	[self.presenter bindViewController:self viewCreator:self.creator];
 	self.options = options;
 	self.defaultOptions = defaultOptions;
-	
+
 	[self.presenter applyOptionsOnInit:self.resolveOptions];
-	
+
 	self.animator = [[RNNAnimator alloc] initWithTransitionOptions:self.resolveOptions.customTransition];
-	
+
 	[[NSNotificationCenter defaultCenter] addObserver:self
 											 selector:@selector(onJsReload)
 												 name:RCTJavaScriptWillStartLoadingNotification
 											   object:nil];
 	self.navigationController.delegate = self;
-	
+
 	return self;
 }
 
@@ -74,7 +74,7 @@
 - (void)mergeOptions:(RNNNavigationOptions *)options {
 	[_presenter mergeOptions:options currentOptions:self.options defaultOptions:self.defaultOptions];
 	[((UIViewController<RNNLayoutProtocol> *)self.parentViewController) mergeOptions:options];
-	
+
 	[self initCustomViews];
 }
 
@@ -85,10 +85,13 @@
 - (void)viewWillAppear:(BOOL)animated{
 	[super viewWillAppear:animated];
 	_isBeingPresented = YES;
-	
+
 	[_presenter applyOptions:self.resolveOptions];
-	[((UIViewController<RNNParentProtocol> *)self.parentViewController) onChildWillAppear];
-	
+
+  if ([((UIViewController<RNNParentProtocol> *)self.parentViewController) respondsToSelector:@selector(onChildWillAppear)]) {
+    [((UIViewController<RNNParentProtocol> *)self.parentViewController) onChildWillAppear];
+  }
+
 	[self initCustomViews];
 }
 
@@ -116,7 +119,7 @@
 		_reactViewReadyBlock();
 		_reactViewReadyBlock = nil;
 	}
-	
+
 	[[NSNotificationCenter defaultCenter] removeObserver:self name:@"RCTContentDidAppearNotification" object:nil];
 }
 
@@ -159,7 +162,7 @@
 	[self setCustomNavigationTitleView];
 	[self setCustomNavigationBarView];
 	[self setCustomNavigationComponentBackground];
-	
+
 	if (!_customTitleView) {
 		[self setTitleViewWithSubtitle];
 	}
@@ -190,7 +193,7 @@
 					[weakTitleView setFrame:frame];
 				}
 			}];
-			
+
 			self.navigationItem.titleView = _customTitleView;
 		}
 	} else if (_customTitleView && _customTitleView.superview == nil) {
@@ -205,7 +208,7 @@
 	if (!_customTopBar) {
 		if (self.resolveOptions.topBar.component.name.hasValue) {
 			RCTRootView *reactView = (RCTRootView*)[_creator createRootViewFromComponentOptions:self.resolveOptions.topBar.component];
-			
+
 			_customTopBar = [[RNNCustomTitleView alloc] initWithFrame:self.navigationController.navigationBar.bounds subView:reactView alignment:@"fill"];
 			reactView.backgroundColor = UIColor.clearColor;
 			_customTopBar.backgroundColor = UIColor.clearColor;
@@ -225,7 +228,7 @@
 	if (!_customTopBarBackground) {
 		if (self.resolveOptions.topBar.background.component.name.hasValue) {
 			RCTRootView *reactView = (RCTRootView*)[_creator createRootViewFromComponentOptions:self.resolveOptions.topBar.background.component];
-			
+
 			_customTopBarBackground = [[RNNCustomTitleView alloc] initWithFrame:self.navigationController.navigationBar.bounds subView:reactView alignment:@"fill"];
 			[self.navigationController.navigationBar insertSubview:_customTopBarBackground atIndex:1];
 		} else if (self.navigationController.navigationBar.subviews.count > 1 && [[self.navigationController.navigationBar.subviews objectAtIndex:1] isKindOfClass:[RNNCustomTitleView class]]) {
@@ -254,7 +257,7 @@
 	} else if ([self.resolveOptions.statusBar.hideWithTopBar getWithDefaultValue:NO]) {
 		return self.navigationController.isNavigationBarHidden;
 	}
-	
+
 	return NO;
 }
 
@@ -290,7 +293,7 @@
 	} else {
 		return nil;
 	}
-	
+
 	return nil;
 }
 
@@ -326,7 +329,7 @@
 	} else if ([action[@"style"] isEqualToString:@"destructive"]) {
 		actionStyle = UIPreviewActionStyleDestructive;
 	}
-	
+
 	return [UIPreviewAction actionWithTitle:actionTitle style:actionStyle handler:^(UIPreviewAction * _Nonnull action, UIViewController * _Nonnull previewViewController) {
 		[self onActionPress:actionId];
 	}];
