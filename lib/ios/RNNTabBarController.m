@@ -32,6 +32,8 @@
 	[self.presenter bindViewController:self];
 	[self setViewControllers:childViewControllers];
 	
+	self.customizableViewControllers = nil; // disable edit button
+	
 	return self;
 }
 
