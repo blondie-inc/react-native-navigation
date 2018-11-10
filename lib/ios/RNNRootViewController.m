@@ -87,7 +87,10 @@
 	_isBeingPresented = YES;
 	
 	[_presenter applyOptions:self.resolveOptions];
-	[((UIViewController<RNNParentProtocol> *)self.parentViewController) onChildWillAppear];
+	
+	if ([((UIViewController<RNNParentProtocol> *)self.parentViewController) respondsToSelector:@selector(onChildWillAppear)]) {
+		[((UIViewController<RNNParentProtocol> *)self.parentViewController) onChildWillAppear];
+	}
 	
 	[self initCustomViews];
 }
